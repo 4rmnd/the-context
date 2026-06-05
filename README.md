@@ -97,15 +97,10 @@ the-context/
 │   └── background.js      # Service worker — API calls (Gemini + Groq + OpenRouter)
 ├── content/
 │   └── content.js         # Content script — DOM scraper for all 3 platforms
-├── popup/
-│   ├── popup.html         # Extension popup UI
-│   ├── popup.js           # Popup logic (tabs, scan, generate, history)
-│   └── popup.css          # Styling (dark mode, design tokens)
-└── icons/
-    ├── icon.png           # Extension icon
-    ├── claude.png         # Claude favicon
-    ├── chatgpt.png        # ChatGPT favicon
-    └── gemini.png         # Gemini favicon
+└── popup/
+    ├── popup.html         # Extension popup UI
+    ├── popup.js           # Popup logic (tabs, scan, generate, history)
+    └── popup.css          # Styling (dark mode, design tokens)
 ```
 
 ---
