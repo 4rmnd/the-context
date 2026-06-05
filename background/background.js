@@ -1,23 +1,71 @@
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are an assistant tasked with creating a "Continuation Prompt" from an AI conversation.
+const SYSTEM_PROMPT = `[ROLE] — You are a Senior Context Architect & Information Manager AI, specialized in synthesizing AI conversations into a precise, structured Context State Document that serves as a perfect memory baseline for future sessions.
 
-You will receive RAW TEXT from an AI chat web page (Claude / ChatGPT / Gemini). This is all the visible text on the page, which may include some UI navigation text around the edges.
+[CONTEXT] — You will receive raw text scraped from an AI chat page (Claude / ChatGPT / Gemini). The text may contain UI navigation elements — ignore those and focus only on the conversation content.
 
-Your task:
-1. Identify and separate USER messages vs AI messages from the raw text (ignore UI/navigation text)
-2. Understand: the main topic, the user's goal, the AI's last output, and what remains unfinished
-3. Write a single block of text that can be pasted directly into a new AI session so the conversation can continue without losing context
+[TASK] — Analyze the entire conversation transcript and extract the following five categories with extreme precision. Focus on high-signal, actionable information — not verbatim repetition:
 
-Output format:
-- Concise but complete (max 500 words)
-- Use the same language as the original conversation
-- Include explicit instructions: "Continue from..." or "Finish..."
-- Do not add any explanation — the output should ONLY be the Continuation Prompt itself
+1. CORE OBJECTIVES
+   - The primary goal(s) and underlying intent the user established in this conversation.
+   - What the user ultimately wants to achieve by the end of the session.
 
-Do not lose:
-- Decisions / results already agreed upon
-- Code already written (summarize with a note of what exists)
-- The tone and style of the discussion`;
+2. TECHNICAL CONSTRAINTS & RULES
+   - All non-negotiable parameters, stylistic preferences, and operational guidelines set during the conversation.
+   - Includes: tech stack choices, code style rules, language preferences, formatting rules, and any "do not do X" constraints.
+
+3. MILESTONES & DECISIONS
+   - Specific conclusions reached, tasks completed, solutions agreed upon, and explicit approvals given.
+   - For code: summarize what was written and what it does (do NOT paste entire code blocks — summarize them).
+
+4. USER PROFILE & CONTEXT
+   - Background information, domain expertise level, recurring preferences, and unique themes about this user's working style.
+   - Anything that shapes HOW the AI should respond (tone: formal/casual, depth: detailed/concise, etc.).
+
+5. PENDING ACTIONS & NEXT STEPS
+   - Unresolved items, open questions, and explicitly planned next steps.
+   - What the AI was in the middle of doing when the session ended.
+
+[FORMAT] — Output must be a structured Continuation Prompt document using this exact format:
+
+=== CONTEXT CARRY — SESSION SNAPSHOT ===
+
+**Platform:** [detected platform]
+**Session Language:** [language used]
+**AI Response Style:** [e.g., casual & technical / formal & concise]
+
+---
+### 🎯 CORE OBJECTIVES
+[bullet points]
+
+---
+### ⚙️ TECHNICAL CONSTRAINTS & RULES
+[bullet points]
+
+---
+### ✅ MILESTONES & DECISIONS
+[bullet points]
+
+---
+### 👤 USER PROFILE & CONTEXT
+[bullet points]
+
+---
+### 🔄 PENDING ACTIONS & NEXT STEPS
+[bullet points]
+
+---
+### 📋 CONTINUATION INSTRUCTION
+[Write 2–4 sentences in the same language as the conversation. This is the direct instruction to the new AI session: briefly recap what was happening and give an explicit command to continue — e.g., "We were building X. The last thing completed was Y. Continue by doing Z."]
+
+=== END OF CONTEXT CARRY ===
+
+[CONSTRAINTS]
+- Use the same language as the original conversation for the Continuation Instruction section.
+- The section headers and structure must remain in English for consistency.
+- Only include high-signal, actionable information. No conversational filler.
+- If a section has no relevant information, write "N/A" — do not omit the section.
+- Max output: 600 words.
+- Output ONLY the document above — no additional explanation before or after it.`;
 
 // Keys are always user-supplied (BYOK only). No built-in keys.
 
@@ -49,13 +97,16 @@ async function handleGeneratePrompt(rawText, platform, maxMessages = 20) {
     contentToProcess = "...[beginning of conversation trimmed]\n\n" + rawText.slice(rawText.length - maxChars);
   }
 
-  const userContent = `Platform: ${platform || "AI Chat"}
+  const userContent = `[INPUT]
+Platform: ${platform || "AI Chat"}
 
-Here is the RAW TEXT from the AI chat page. Please create a Continuation Prompt:
+Below is the raw text scraped from the AI chat page. Analyze this conversation and generate a complete Context State Document following your instructions:
 
----
+--- CONVERSATION START ---
 ${contentToProcess}
----`;
+--- CONVERSATION END ---
+
+Now extract all five categories (Core Objectives, Technical Constraints & Rules, Milestones & Decisions, User Profile & Context, Pending Actions & Next Steps) and produce the full structured document.`;
 
   // Resolve API keys — BYOK only, always read from local storage
   const storage = await chrome.storage.local.get(["geminiKey", "groqKey", "openrouterKey", "openrouterModel"]);
@@ -126,7 +177,7 @@ async function callGemini(apiKey, userContent) {
     body: JSON.stringify({
       system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
       contents: [{ role: "user", parts: [{ text: userContent }] }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 1024 }
+      generationConfig: { temperature: 0.3, maxOutputTokens: 2048 }
     })
   });
 
@@ -156,8 +207,8 @@ async function callGroq(apiKey, userContent) {
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userContent }
       ],
-      temperature: 0.2,
-      max_tokens: 1024
+      temperature: 0.3,
+      max_tokens: 2048
     })
   });
 
@@ -189,8 +240,8 @@ async function callOpenRouter(apiKey, model, userContent) {
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userContent }
       ],
-      temperature: 0.2,
-      max_tokens: 1024
+      temperature: 0.3,
+      max_tokens: 2048
     })
   });
 
