@@ -1,0 +1,39 @@
+# Chrome Extension build artifacts
+*.crx
+*.pem
+*.zip
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Node (if ever used)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Internal / design working files
+DESIGN-claude.md
+DESIGN-vercel.md
+TheContext_PRD.md
+
+# Agent working directories
+.agents/
+
+# Logs
+*.log

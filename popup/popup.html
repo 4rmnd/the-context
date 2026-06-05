@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Context</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Premium Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <img src="../icons/icon.png" alt="The Context" class="app-logo">
+        <span class="wordmark">The Context</span>
+      </div>
+      <span id="platform-pill" class="platform-pill unknown">
+        <img id="platform-favicon" class="platform-favicon" src="" alt="" aria-hidden="true">
+        <span id="platform-name">Detecting...</span>
+      </span>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+      <button class="nav-btn active" data-tab="generator">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="nav-icon"><path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-8 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z" clip-rule="evenodd"/></svg>
+        Generate
+      </button>
+      <button class="nav-btn" data-tab="history">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="nav-icon"><path fill-rule="evenodd" d="M12 2a10 10 0 0 0-7.07 17.07l1.41-1.41A8 8 0 1 1 12 20a7.94 7.94 0 0 1-5.18-1.92l-1.44 1.44A10 10 0 1 0 12 2Zm-1 5a1 1 0 1 1 2 0v5a1 1 0 0 1-.29.7l-3 3a1 1 0 1 1-1.42-1.4l2.71-2.72V7Z" clip-rule="evenodd"/></svg>
+        History
+      </button>
+      <button class="nav-btn" data-tab="settings">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="nav-icon"><path fill-rule="evenodd" d="M11.078 2.25c-.288 0-.547.192-.63.468l-.399 1.332a6.762 6.762 0 0 0-1.89.782l-1.24-.595a.662.662 0 0 0-.82.164L4.793 6.136a.662.662 0 0 0-.083.829l.758 1.15a6.776 6.776 0 0 0-.4 2.01l-1.378.156a.662.662 0 0 0-.59.66v2.418c0 .324.237.596.558.632l1.378.156c.075.7.21 1.376.4 2.01l-.758 1.15a.662.662 0 0 0 .083.83l1.306 1.734a.662.662 0 0 0 .82.164l1.24-.595c.577.332 1.21.597 1.89.782l.399 1.332c.083.276.342.468.63.468h2.418c.288 0 .547-.192.63-.468l.399-1.332c.68-.185 1.313-.45 1.89-.782l1.24.595c.294.141.65.074.82-.164l1.306-1.734a.662.662 0 0 0 .083-.83l-.758-1.15c.19-.634.325-1.31.4-2.01l1.378-.156c.321-.036.558-.308.558-.632V11.75c0-.288-.192-.547-.468-.63l-1.332-.399a6.762 6.762 0 0 0-.782-1.89l.595-1.24a.662.662 0 0 0-.164-.82l-1.734-1.306a.662.662 0 0 0-.829-.083l-1.15.758a6.776 6.776 0 0 0-2.01-.4l-.156-1.378a.662.662 0 0 0-.632-.558H11.08Zm.922 6.25a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" clip-rule="evenodd"/></svg>
+        Settings
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+
+      <!-- PANEL 1: Generator -->
+      <section id="tab-generator" class="tab-panel active">
+        <div class="status-card">
+          <div class="status-row">
+            <span class="status-label">Active Tab:</span>
+            <span id="detected-site-label" class="status-value">Claude / ChatGPT / Gemini</span>
+          </div>
+          <div class="status-row mt-2">
+            <span class="status-label">Messages:</span>
+            <span id="scraped-count-label" class="status-value">-</span>
+          </div>
+        </div>
+
+        <button id="btn-generate" class="btn-primary primary-gradient" disabled>
+          <span class="btn-text">Generate Continuation Prompt</span>
+          <span class="spinner hidden"></span>
+        </button>
+
+        <div id="result-wrapper" class="result-wrapper hidden">
+          <!-- Hidden textarea to store the generated prompt for JS copy logic -->
+          <textarea id="prompt-output" class="hidden" readonly></textarea>
+          
+          <!-- Premium Success Card -->
+          <div class="success-card">
+            <div class="success-icon-container">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="success-icon-svg">
+                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.74-5.24Z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="success-info">
+              <span class="success-title">Continuation Prompt Ready!</span>
+              <span class="success-desc">Generated successfully using <span id="provider-badge" class="provider-badge-highlight">Gemini</span></span>
+            </div>
+          </div>
+
+          <!-- Big premium CTA button -->
+          <button id="btn-copy" class="btn-primary mt-3" title="Copy to Clipboard">
+            <span class="copy-icon button-icon-text-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-svg-icon">
+                <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy Continuation Prompt</span>
+            </span>
+            <span class="copy-success-check hidden">✓ Copied!</span>
+          </button>
+        </div>
+
+        <!-- Toast Feedback -->
+        <div id="toast" class="toast hidden">Copied to Clipboard!</div>
+        <!-- Error Message Banner -->
+        <div id="error-banner" class="error-banner hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="error-icon">
+            <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+          </svg>
+          <div class="error-body">
+            <span class="error-title">Scan failed</span>
+            <span class="error-msg"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 2: History -->
+      <section id="tab-history" class="tab-panel">
+        <div class="history-list-wrapper">
+          <div id="history-empty" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="empty-icon-svg"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+            <p>No history yet.</p>
+            <span>Generate your first prompt to see it here.</span>
+          </div>
+          <div id="history-items" class="history-items scrollbar">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 3: Settings -->
+      <section id="tab-settings" class="tab-panel">
+        <form id="settings-form" class="settings-form">
+
+          <div id="byok-fields" class="settings-group">
+            <label class="group-title">API Keys</label>
+
+            <div class="input-field-wrapper">
+              <label for="gemini-key">Gemini API Key</label>
+              <div class="input-container">
+                <input type="password" id="gemini-key" placeholder="AIzaSy...">
+                <button type="button" class="btn-toggle-visibility" data-target="gemini-key">👁️</button>
+              </div>
+            </div>
+
+            <div class="input-field-wrapper mt-3">
+              <label for="groq-key">Groq API Key <span style="color:var(--muted);font-weight:400">(fallback)</span></label>
+              <div class="input-container">
+                <input type="password" id="groq-key" placeholder="gsk_...">
+                <button type="button" class="btn-toggle-visibility" data-target="groq-key">👁️</button>
+              </div>
+            </div>
+
+            <div class="input-field-wrapper mt-3">
+              <label for="openrouter-key">OpenRouter API Key <span style="color:var(--muted);font-weight:400">(fallback)</span></label>
+              <div class="input-container">
+                <input type="password" id="openrouter-key" placeholder="sk-or-v1-...">
+                <button type="button" class="btn-toggle-visibility" data-target="openrouter-key">👁️</button>
+              </div>
+            </div>
+
+            <div class="input-field-wrapper mt-3">
+              <label for="openrouter-model-select">OpenRouter Model</label>
+              <div class="input-container">
+                <select id="openrouter-model-select">
+                  <option value="google/gemini-2.0-flash:free">Gemini 2.0 Flash (Free)</option>
+                  <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct (Free)</option>
+                  <option value="google/gemini-2.0-flash">Gemini 2.0 Flash</option>
+                  <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B Instruct</option>
+                  <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                  <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
+                  <option value="deepseek/deepseek-chat">DeepSeek Chat</option>
+                  <option value="mistralai/mistral-large">Mistral Large 2</option>
+                  <option value="openrouter/auto">Auto (OpenRouter Route)</option>
+                  <option value="custom">Custom Model...</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="openrouter-custom-model-wrapper" class="input-field-wrapper mt-2 hidden">
+              <label for="openrouter-model-custom">Custom Model ID</label>
+              <div class="input-container">
+                <input type="text" id="openrouter-model-custom" placeholder="e.g. meta-llama/llama-3-8b-instruct:free">
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="slider-header">
+              <label for="max-messages">Messages to Scan</label>
+              <span id="max-messages-val">20</span>
+            </div>
+            <input type="range" id="max-messages" min="10" max="60" step="5" value="20" class="slider-range">
+            <p class="settings-hint">Number of recent messages (User + AI) sent to the API. More messages = more context, but uses more tokens.</p>
+          </div>
+
+          <button type="submit" id="btn-save-settings" class="btn-secondary">
+            Save Settings
+          </button>
+        </form>
+      </section>
+
+    </main>
+
+    <!-- Sleek Minimalist Footer -->
+    <footer class="app-footer">
+      <span>The Context v1.1.0</span>
+      <span class="footer-separator">•</span>
+      <span>Made for AI power users</span>
+    </footer>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
