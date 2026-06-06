@@ -75,18 +75,25 @@ async function handleGeneratePrompt(rawText, platform, maxMessages = 50) {
     throw new Error("Not enough conversation content to process.");
   }
 
+  // ── Trim by message count if applicable ────────────────────────────────────
+  // maxMessages = 0 means unlimited (send all).
+  // rawText is formatted as "[USER]:\n...\n\n[AI]:\n...\n\n" so we split on that pattern.
+  let trimmedText = rawText;
+  if (maxMessages > 0) {
+    trimmedText = trimByMessageCount(rawText, maxMessages);
+  }
+
   // ── What we send to the AI API ──────────────────────────────────────────────
-  // We send the conversation to the AI so it can generate the header.
-  // We use a generous cap here since we only need the AI to understand, not reproduce.
-  // Modern APIs handle ~20k chars comfortably within free tier limits.
-  const MAX_API_CHARS = 20000;
-  let contentForAPI = rawText;
-  if (rawText.length > MAX_API_CHARS) {
+  // We send enough context for the AI to understand, but cap at ~20k chars for API efficiency.
+  // For "All messages" mode we allow up to 40k chars since user explicitly wants full context.
+  const MAX_API_CHARS = maxMessages === 0 ? 40000 : 20000;
+  let contentForAPI = trimmedText;
+  if (trimmedText.length > MAX_API_CHARS) {
     // Send first 40% + last 60% so the AI sees both the original task AND the latest progress
     const headChars = Math.floor(MAX_API_CHARS * 0.40);
     const tailChars = Math.floor(MAX_API_CHARS * 0.60);
-    const head = rawText.slice(0, headChars);
-    const tail = rawText.slice(rawText.length - tailChars);
+    const head = trimmedText.slice(0, headChars);
+    const tail = trimmedText.slice(trimmedText.length - tailChars);
     contentForAPI = head + "\n\n...[middle section omitted from this API call — full transcript included below]...\n\n" + tail;
   }
 
@@ -99,22 +106,21 @@ ${contentForAPI}
 --- CONVERSATION END ---`;
 
   // ── What we append verbatim to the final output ────────────────────────────
-  // The full raw transcript is appended AFTER the AI header.
-  // This is what guarantees 100% context — the new AI reads the entire conversation.
-  // We cap at 30,000 chars (~7,500 words) which fits in any modern AI's context window.
-  const MAX_TRANSCRIPT_CHARS = 30000;
-  let verbatimTranscript = rawText;
-  if (rawText.length > MAX_TRANSCRIPT_CHARS) {
-    // If the full transcript is too long, we still do head+tail to cover both ends
+  // The full (or trimmed) transcript is appended AFTER the AI header.
+  // Cap at 50k chars for "All" mode, 30k otherwise.
+  const MAX_TRANSCRIPT_CHARS = maxMessages === 0 ? 50000 : 30000;
+  let verbatimTranscript = trimmedText;
+  if (trimmedText.length > MAX_TRANSCRIPT_CHARS) {
     const headChars = Math.floor(MAX_TRANSCRIPT_CHARS * 0.35);
     const tailChars = Math.floor(MAX_TRANSCRIPT_CHARS * 0.65);
-    const head = rawText.slice(0, headChars);
-    const tail = rawText.slice(rawText.length - tailChars);
+    const head = trimmedText.slice(0, headChars);
+    const tail = trimmedText.slice(trimmedText.length - tailChars);
     verbatimTranscript =
       head +
       "\n\n...[MIDDLE SECTION — conversation was very long, this portion is omitted to fit context limits]...\n\n" +
       tail;
   }
+
 
   // Resolve API keys — BYOK only, always read from local storage
   const storage = await chrome.storage.local.get(["geminiKey", "groqKey", "openrouterKey", "openrouterModel"]);
@@ -197,6 +203,30 @@ ${contentForAPI}
 
   return { prompt: finalPrompt, provider: providerUsed };
 }
+
+// ─── TRIM BY MESSAGE COUNT ────────────────────────────────────────────────────
+// rawText is formatted as blocks separated by "\n\n" where each block starts
+// with "[USER]:\n" or "[AI]:\n". We split into those blocks, keep the first
+// message (original context) + the N most recent messages.
+function trimByMessageCount(rawText, maxMessages) {
+  if (!maxMessages || maxMessages <= 0) return rawText;
+
+  // Split on the message block separator pattern
+  // Blocks look like: "[USER]:\n..." or "[AI]:\n..."
+  const blocks = rawText.split(/\n\n(?=\[(?:USER|AI)\]:)/);
+
+  if (blocks.length <= maxMessages) return rawText; // Already within limit
+
+  // Keep first message (original task context) + last (maxMessages - 1) messages
+  const firstBlock = blocks[0];
+  const recentBlocks = blocks.slice(blocks.length - (maxMessages - 1));
+
+  const omittedCount = blocks.length - maxMessages;
+  const omittedNote = `\n\n...[${omittedCount} earlier messages omitted — showing first message + last ${maxMessages - 1} messages]...\n\n`;
+
+  return firstBlock + omittedNote + recentBlocks.join("\n\n");
+}
+
 
 // ─── GEMINI API ───────────────────────────────────────────────────────────────
 async function callGemini(apiKey, userContent) {

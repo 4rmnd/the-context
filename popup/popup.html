@@ -179,10 +179,14 @@
           <div class="settings-group">
             <div class="slider-header">
               <label for="max-messages">Messages to Scan</label>
-              <span id="max-messages-val">20</span>
+              <span id="max-messages-val">50</span>
             </div>
-            <input type="range" id="max-messages" min="10" max="60" step="5" value="20" class="slider-range">
-            <p class="settings-hint">Number of recent messages (User + AI) sent to the API. More messages = more context, but uses more tokens.</p>
+            <input type="range" id="max-messages" min="10" max="200" step="10" value="50" class="slider-range">
+            <div class="all-messages-row">
+              <input type="checkbox" id="max-messages-all" class="checkbox-all">
+              <label for="max-messages-all" class="checkbox-label">All messages (no limit)</label>
+            </div>
+            <p class="settings-hint">Number of recent messages (User + AI) sent to the API. More = more context, but uses more tokens. Check "All" to send the entire conversation.</p>
           </div>
 
           <button type="submit" id="btn-save-settings" class="btn-secondary">

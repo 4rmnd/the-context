@@ -738,6 +738,58 @@ body {
 
 .slider-range::-webkit-slider-thumb:hover { transform: scale(1.18); }
 
+/* ─── ALL MESSAGES CHECKBOX ────────────────────────────────────────────────── */
+.all-messages-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+}
+
+.checkbox-all {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--hairline-strong);
+  border-radius: 3px;
+  background: var(--canvas-soft-2);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--t), border-color var(--t);
+  position: relative;
+}
+
+.checkbox-all:checked {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.checkbox-all:checked::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 7px;
+  border: 1.5px solid var(--on-primary);
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.checkbox-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--body);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  line-height: 16px;
+  display: block;
+  margin-bottom: 0;
+}
+
 /* ─── SECONDARY BUTTON — pill, dark outline ────────────────────────────────── */
 .btn-secondary {
   width: 100%;

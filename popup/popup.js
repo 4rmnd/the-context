@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const openrouterModelCustomInput = document.getElementById("openrouter-model-custom");
   const maxMessagesInput = document.getElementById("max-messages");
   const maxMessagesVal = document.getElementById("max-messages-val");
+  const maxMessagesAllCheckbox = document.getElementById("max-messages-all");
 
   let activeTabId = null;
   let scrapedRawText = "";      // Raw page text (new selector-free approach)
@@ -43,7 +44,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     groqKey: "",
     openrouterKey: "",
     openrouterModel: "google/gemini-2.0-flash:free",
-    maxMessages: 20
+    maxMessages: 50,
+    maxMessagesAll: false
   };
 
   // --- TAB NAVIGATION ---
@@ -65,12 +67,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- SETTINGS LOGIC ---
   // Load settings from storage
-  const loadedSettings = await chrome.storage.local.get(["geminiKey", "groqKey", "openrouterKey", "openrouterModel", "maxMessages"]);
+  const loadedSettings = await chrome.storage.local.get(["geminiKey", "groqKey", "openrouterKey", "openrouterModel", "maxMessages", "maxMessagesAll"]);
   if (loadedSettings.geminiKey) extensionSettings.geminiKey = loadedSettings.geminiKey;
   if (loadedSettings.groqKey) extensionSettings.groqKey = loadedSettings.groqKey;
   if (loadedSettings.openrouterKey) extensionSettings.openrouterKey = loadedSettings.openrouterKey;
   if (loadedSettings.openrouterModel) extensionSettings.openrouterModel = loadedSettings.openrouterModel;
   if (loadedSettings.maxMessages) extensionSettings.maxMessages = loadedSettings.maxMessages;
+  if (loadedSettings.maxMessagesAll !== undefined) extensionSettings.maxMessagesAll = loadedSettings.maxMessagesAll;
 
   // Initialize Settings UI values
   geminiKeyInput.value = extensionSettings.geminiKey;
@@ -102,7 +105,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   
   maxMessagesInput.value = extensionSettings.maxMessages;
-  maxMessagesVal.textContent = extensionSettings.maxMessages;
+  maxMessagesVal.textContent = extensionSettings.maxMessagesAll ? "All" : extensionSettings.maxMessages;
+  maxMessagesAllCheckbox.checked = extensionSettings.maxMessagesAll;
+  // If All is checked, dim the slider
+  if (extensionSettings.maxMessagesAll) {
+    maxMessagesInput.disabled = true;
+    maxMessagesInput.style.opacity = "0.4";
+  }
 
   // Visibility toggle button for passwords
   document.querySelectorAll(".btn-toggle-visibility").forEach(btn => {
@@ -121,7 +130,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Slider change handler
   maxMessagesInput.addEventListener("input", (e) => {
-    maxMessagesVal.textContent = e.target.value;
+    if (!maxMessagesAllCheckbox.checked) {
+      maxMessagesVal.textContent = e.target.value;
+    }
+  });
+
+  // "All messages" checkbox
+  maxMessagesAllCheckbox.addEventListener("change", () => {
+    if (maxMessagesAllCheckbox.checked) {
+      maxMessagesVal.textContent = "All";
+      maxMessagesInput.disabled = true;
+      maxMessagesInput.style.opacity = "0.4";
+    } else {
+      maxMessagesVal.textContent = maxMessagesInput.value;
+      maxMessagesInput.disabled = false;
+      maxMessagesInput.style.opacity = "1";
+    }
   });
 
   // OpenRouter model dropdown change handler
@@ -153,8 +177,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     
     const maxMessages = parseInt(maxMessagesInput.value, 10);
+    const maxMessagesAll = maxMessagesAllCheckbox.checked;
 
-    extensionSettings = { geminiKey, groqKey, openrouterKey, openrouterModel, maxMessages };
+    extensionSettings = { geminiKey, groqKey, openrouterKey, openrouterModel, maxMessages, maxMessagesAll };
     
     await chrome.storage.local.set(extensionSettings);
 
@@ -199,7 +224,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       detectedSiteLabel.textContent = `${platform} Chat`;
-      scrapedCountLabel.textContent = "Scanning...";
+      scrapedCountLabel.textContent = "Scanning all messages...";
 
       // Send scan message to content script
       chrome.tabs.sendMessage(activeTabId, { action: "scan_chat" }, (response) => {
@@ -297,11 +322,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     errorBanner.classList.add("hidden");
 
     // Send raw text + platform to background service worker
+    // If maxMessagesAll is set, pass 0 (= unlimited) to background
+    const effectiveMaxMessages = extensionSettings.maxMessagesAll ? 0 : extensionSettings.maxMessages;
     chrome.runtime.sendMessage({
       action: "generate_prompt",
       rawText: scrapedRawText,
       platform: detectedPlatform,
-      maxMessages: extensionSettings.maxMessages
+      maxMessages: effectiveMaxMessages
     }, (response) => {
       // Toggle back loading UI
       btnGenerate.disabled = false;
