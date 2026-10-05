@@ -1,131 +1,204 @@
-# The Context
+<div align="center">
 
-> **One click. Full context. Never start over.**
+  <img src="icons/icon.png" alt="The Context Logo" width="100" height="100" />
 
-A Chrome extension that scans your active AI conversation (Claude, ChatGPT, or Gemini), then generates a ready-to-paste **Continuation Prompt** — so you can seamlessly resume in a new session without losing any context.
+  # The Context
 
----
+  ### *One click. Zero context loss. Never start over.*
 
-## Why?
+  An intelligent, open-source Chrome extension that scans your active AI conversations across 10+ platforms and produces a structured, paste-ready **Continuation Package** — allowing you to bypass quota limits and resume immediately in another session or platform.
 
-When you hit a quota limit mid-session, all your hard-won context disappears. You're forced to re-explain everything from scratch.
+  <br />
 
-**The Context** fixes that. In one click, it captures the full thread, sends it to an AI model to intelligently summarize it, and hands you a compact, paste-ready prompt that lets any AI pick up right where you left off.
+  [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg?style=flat-square)](./CHANGELOG.md)
+  [![Manifest V3](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-success.svg?style=flat-square)](./manifest.json)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](./LICENSE)
+  [![Security](https://img.shields.io/badge/Privacy-100%25%20Client--Side-brightgreen.svg?style=flat-square)](#privacy--security)
+  [![Providers](https://img.shields.io/badge/AI%20Providers-10%20Engines-orange.svg?style=flat-square)](#supported-ai-inference-engines)
 
----
-
-## Supported Platforms
-
-| Platform | URL |
-|----------|-----|
-| Claude | `claude.ai/chat/*` |
-| ChatGPT | `chatgpt.com/*` |
-| Gemini | `gemini.google.com/*` |
+</div>
 
 ---
 
-## Features
+## ⚡ The Problem
 
-- 🔍 **Smart Conversation Scanner** — reads the full thread via DOM scraping with multiple fallback strategies per platform
-- ✨ **AI-Powered Summarization** — generates a structured Continuation Prompt (context + last output + explicit resume instruction)
-- 📋 **One-Click Copy** — copies the prompt to clipboard instantly
-- 🕑 **Local History** — stores the last 10 generated prompts in your browser (never leaves your machine)
-- 🔑 **Bring Your Own Key (BYOK)** — uses your own API keys; no server middleman, no data collection
-- ⚡ **Cascading Fallback** — tries Gemini first, then Groq, then OpenRouter if previous fail
+When deep in a coding session, research thread, or architecture review, reaching an AI **rate or quota limit** breaks your flow. Moving to another account or platform usually requires:
+- Copying disconnected fragments of chat history.
+- Re-explaining rules, tech stacks, and established decisions from scratch.
+- Manually summarizing what the AI was in the middle of doing.
+
+**The Context** automates this entirely. With a single click, it captures the conversation, extracts critical metadata via high-speed AI inference, and generates a structured Continuation Package that any AI can pick up instantly.
 
 ---
 
-## Installation (Manual / Unpacked)
+## 🔄 User Flow
 
-> The extension is not yet on the Chrome Web Store. Install it manually in a few steps.
+```mermaid
+graph LR
+    A[Hit Quota Limit] --> B[Click 'The Context']
+    B --> C[Scrapes Active Conversation]
+    C --> D[AI Engine Summarizes Metadata]
+    D --> E[Generates Continuation Package]
+    E --> F[Copy & Paste into New AI Session]
+```
 
-1. **Clone or download** this repository:
+---
+
+## 🌐 Supported Chat Platforms
+
+The Context features robust DOM scrapers equipped with multi-tier fallback selectors, container scroll traversal, and heuristic role detection:
+
+| Platform | Target URL | Scraper Method |
+| :--- | :--- | :--- |
+| **Claude.ai** | `claude.ai/chat/*` | Turn-based selectors, internal API probe & class traversal |
+| **ChatGPT** | `chatgpt.com/*`, `chat.openai.com/*` | Conversation-turn articles & `data-message-author-role` |
+| **Google Gemini** | `gemini.google.com/*` | Custom web components (`<user-query>`, `<model-response>`) |
+| **DeepSeek Chat** | `chat.deepseek.com/*` | Container traversal & markdown content grouping |
+| **Perplexity AI** | `perplexity.ai/*` | Query container & answer block parsing |
+| **Mistral Chat** | `chat.mistral.ai/*` | Chat message wrappers & bubble role mapping |
+| **Microsoft Copilot** | `copilot.microsoft.com/*` | Copilot turn & message bubble detection |
+| **Grok (xAI)** | `grok.com/*`, `x.com/i/grok*` | Response wrapper & user prompt pairing |
+| **Poe** | `poe.com/*` | Chat message containers & author attributes |
+| **HuggingChat** | `huggingface.co/chat/*` | Svelte message turns & markdown blocks |
+| **Universal Fallback** | *Any conversational interface* | Heuristic role classifier & raw text fallback |
+
+---
+
+## 🧠 Supported AI Inference Engines
+
+Configure any of the following 10 providers in the Settings tab. All requests are dispatched directly from your browser to the provider:
+
+| Provider | Default / Recommended Model | Capabilities |
+| :--- | :--- | :--- |
+| **Google Gemini** | `gemini-2.0-flash` | Ultra-fast token processing, generous free tier |
+| **Groq** | `llama-3.3-70b-versatile` | Blazing-fast inference speeds (~500+ tok/s) |
+| **DeepSeek API** | `deepseek-chat`, `deepseek-reasoner` | High-precision instruction following, low cost |
+| **OpenRouter** | `google/gemini-2.0-flash:free`, custom | Unified gateway to 100+ open & commercial models |
+| **OpenAI** | `gpt-4o-mini`, `gpt-4o` | Reliable structured header generation |
+| **NVIDIA NIM** | `meta/llama-3.3-70b-instruct` | Enterprise-grade hosted open models |
+| **Ollama** | `llama3.3:latest` *(Local)* | **100% offline, zero-data-leak** local LLM inference |
+| **Mistral AI** | `mistral-large-latest` | Multilingual & reasoning performance |
+| **Cerebras** | `llama-3.3-70b` | Extreme token velocity inference |
+| **SambaNova** | `Meta-Llama-3.3-70B-Instruct` | High-throughput AI cloud |
+
+---
+
+## 🚀 Key Features
+
+### 1. Intelligent AI Routing & Failover Strategies
+Choose between 3 distinct execution modes in Settings:
+- **Cascade Fallback (Default)**: Tries your primary provider first. If a rate limit (HTTP 429), quota exhaustion, or server error occurs, it automatically transitions to the next available configured provider.
+- **Round-Robin Rotation**: Cycles evenly across all configured providers on every generation to spread token load and preserve rate limits.
+- **Fusion Mode**: Synthesizes continuation context across a panel of models with an automated judge.
+
+### 2. High-Density Continuation Architecture
+Rather than producing a lossy summary, The Context outputs a standardized **Session Header** paired with the verbatim conversation:
+```
+╔══════════════════════════════════════════════════╗
+║         CONTEXT CARRY — SESSION HEADER           ║
+╚══════════════════════════════════════════════════╝
+
+📌 QUICK BRIEF
+[Compact overview of the discussion and objective]
+
+⚙️ ACTIVE CONSTRAINTS & RULES
+[Explicit directives, chosen stack, stylistic rules, non-negotiables]
+
+✅ STATUS & LAST CHECKPOINT
+[Completed deliverables, files, and current work-in-progress]
+
+▶️ CONTINUATION DIRECTIVE
+[Clear, explicit prompt to resume seamlessly]
+
+══════════════════════════════════════════════════
+    ↓ FULL CONVERSATION TRANSCRIPT BELOW ↓
+══════════════════════════════════════════════════
+[Verbatim transcript preserving complete technical context]
+```
+
+### 3. Dynamic Model Discovery & Live Verification
+- **Fetch Models**: Query real-time model catalogs from your configured provider with one click.
+- **Test Ping**: Instantly test connectivity, latency, and credentials before generating.
+
+### 4. History Suite with Markdown Export
+- **Instant Search**: Search through generated prompts in real time.
+- **Platform Filter Chips**: Filter history cards by platform (`All`, `Claude`, `ChatGPT`, `Gemini`, `DeepSeek`, `Other`).
+- **Markdown Export**: Download your prompt history as a structured `.md` archive with a single click.
+- **Expandable Preview**: Inspect full text or remove individual records.
+
+### 5. Configurable Context Window
+- Use the message window slider to choose between scanning the last 10, 25, 50 messages or capturing the full conversation.
+
+---
+
+## 📦 Installation (Load Unpacked)
+
+The extension is installed directly in developer mode:
+
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/4rmnd/the-context.git
    ```
 
-2. Open Chrome and navigate to `chrome://extensions/`
-
-3. Enable **Developer mode** (toggle in the top-right corner)
-
-4. Click **"Load unpacked"** and select the cloned folder
-
-5. The extension icon will appear in your Chrome toolbar
-
----
-
-## Setup: Get Your API Keys
-
-The extension uses a **BYOK (Bring Your Own Key)** model — your keys are stored locally in your browser and never sent to any server other than the API provider directly.
-
-### Gemini API Key (Primary — Free tier available)
-1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Create a new API key
-3. Copy it
-
-### Groq API Key (Fallback — Free tier available)
-1. Go to [Groq Console](https://console.groq.com/keys)
-2. Create a new API key
-3. Copy it
-
-### OpenRouter API Key (Fallback — Free/Paid models available)
-1. Go to [OpenRouter Console](https://openrouter.ai/keys)
-2. Create a new API key
-3. Copy it
-
-Then open the extension popup → **Settings** tab → paste your keys and configure your model choice → **Save Settings**.
+2. Open Google Chrome (or any Chromium browser like Brave, Edge, Arc, or Vivaldi).
+3. Navigate to `chrome://extensions/`.
+4. Turn on **Developer mode** in the upper-right corner.
+5. Click **"Load unpacked"** in the top-left corner.
+6. Select the cloned folder containing `manifest.json`.
+7. Pin **The Context** to your toolbar for instant access.
 
 ---
 
-## How to Use
+## ⚙️ Setup: Adding API Keys
 
-1. Open a conversation on Claude, ChatGPT, or Gemini
-2. Click the **The Context** icon in your Chrome toolbar
-3. Click **"Generate Continuation Prompt"**
-4. Wait ~5–10 seconds for the AI to process
-5. Click **"Copy Continuation Prompt"**
-6. Paste it into a new session on any AI platform
+The Context uses a **Bring Your Own Key (BYOK)** model. You only need to configure at least one provider to get started:
+
+1. Click the **The Context** extension icon and open the **Settings** tab.
+2. Select your provider tab (e.g., **Gemini**, **Groq**, or **Ollama**):
+   - **Google Gemini**: Get a free API key at [Google AI Studio](https://aistudio.google.com/app/apikey).
+   - **Groq**: Get a free API key at [Groq Console](https://console.groq.com/keys).
+   - **DeepSeek**: Get an API key at [DeepSeek Platform](https://platform.deepseek.com).
+   - **OpenRouter**: Get an API key at [OpenRouter](https://openrouter.ai/keys).
+   - **Ollama (Local)**: Run Ollama locally (`ollama run llama3.3`) — no API key needed!
+3. Paste the key and click **Save Settings** (or click **Test Ping** to verify connectivity).
 
 ---
 
-## Project Structure
+## 🔒 Privacy & Security
+
+Your data and credentials remain entirely yours:
+- **100% Client-Side**: No middleman server, no proxy, no tracking, and no external telemetry.
+- **Local Storage Only**: All API keys and generated history are stored securely in `chrome.storage.local`.
+- **Direct Encryption**: Network requests go straight from your browser to the designated provider endpoint using HTTPS (or your local Ollama loopback).
+- **Clean Repository**: Strict security ignore rules protect keys, certificates, and secrets.
+
+---
+
+## 📁 Project Architecture
 
 ```
 the-context/
-├── manifest.json          # Chrome Extension Manifest V3
+├── manifest.json          # Chrome Extension Manifest V3 configuration
 ├── background/
-│   └── background.js      # Service worker — API calls (Gemini + Groq + OpenRouter)
+│   └── background.js      # Service worker: Multi-provider engine, routing & failover
 ├── content/
-│   └── content.js         # Content script — DOM scraper for all 3 platforms
-└── popup/
-    ├── popup.html         # Extension popup UI
-    ├── popup.js           # Popup logic (tabs, scan, generate, history)
-    └── popup.css          # Styling (dark mode, design tokens)
+│   └── content.js         # Content script: Resilient DOM scrapers for all platforms
+├── popup/
+│   ├── popup.html         # User interface: Generator, History, Settings panels
+│   ├── popup.css          # Design system: Vercel/Linear dark tokens & glassmorphism
+│   └── popup.js           # Client controller: Scrape triggers, state & storage
+├── icons/
+│   ├── icon.png           # Extension logo
+│   ├── claude.png         # Platform badge asset
+│   ├── chatgpt.png        # Platform badge asset
+│   └── gemini.png         # Platform badge asset
+├── CHANGELOG.md           # Semantic version history and release logs
+├── LICENSE                # Open source license
+└── README.md              # Project documentation
 ```
 
 ---
 
-## Privacy
+## 📄 License
 
-- **No server.** All communication goes directly from your browser to the API provider (Google, Groq, or OpenRouter).
-- **No tracking.** Zero analytics, zero telemetry.
-- **Local storage only.** Your API keys and prompt history are stored in `chrome.storage.local` — they never leave your browser.
-
----
-
-## Roadmap
-
-- [x] DOM scraper for Claude, ChatGPT, Gemini
-- [x] Generate Continuation Prompt via Gemini, Groq, and OpenRouter
-- [x] Local history (last 10 prompts)
-- [x] BYOK settings with custom OpenRouter model choice
-- [ ] Configurable message window (scan last N messages)
-- [ ] Dark mode toggle in popup
-- [ ] Support for more platforms (Perplexity, Mistral, etc.)
-- [ ] Chrome Web Store release
-
----
-
-## License
-
-[MIT](./LICENSE) © 2026
+This project is licensed under the [MIT License](./LICENSE) © 2026.

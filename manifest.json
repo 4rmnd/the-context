@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "The Context",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Scan AI conversations and generate a Continuation Prompt to resume in another session.",
   "permissions": [
     "activeTab",
@@ -13,10 +13,31 @@
   "host_permissions": [
     "https://claude.ai/*",
     "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
     "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://www.perplexity.ai/*",
+    "https://perplexity.ai/*",
+    "https://chat.mistral.ai/*",
+    "https://copilot.microsoft.com/*",
+    "https://grok.com/*",
+    "https://x.com/i/grok*",
+    "https://poe.com/*",
+    "https://huggingface.co/chat/*",
     "https://generativelanguage.googleapis.com/*",
     "https://api.groq.com/*",
-    "https://openrouter.ai/*"
+    "https://openrouter.ai/*",
+    "https://api.deepseek.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "https://api.mistral.ai/*",
+    "https://integrate.api.nvidia.com/*",
+    "https://api.cerebras.ai/*",
+    "https://api.sambanova.ai/*",
+    "https://ollama.com/*",
+    "https://*.ollama.com/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*"
   ],
   "background": {
     "service_worker": "background/background.js"
@@ -26,7 +47,17 @@
       "matches": [
         "https://claude.ai/*",
         "https://chatgpt.com/*",
-        "https://gemini.google.com/*"
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://www.perplexity.ai/*",
+        "https://perplexity.ai/*",
+        "https://chat.mistral.ai/*",
+        "https://copilot.microsoft.com/*",
+        "https://grok.com/*",
+        "https://x.com/i/grok*",
+        "https://poe.com/*",
+        "https://huggingface.co/chat/*"
       ],
       "js": ["content/content.js"],
       "all_frames": false,
@@ -47,6 +78,6 @@
     "128": "icons/icon.png"
   },
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai; img-src 'self' data: blob:"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.deepseek.com https://api.openai.com https://api.anthropic.com https://api.mistral.ai https://integrate.api.nvidia.com https://api.cerebras.ai https://api.sambanova.ai https://ollama.com http://localhost:11434 http://127.0.0.1:11434; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:;"
   }
 }

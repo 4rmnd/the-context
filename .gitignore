@@ -37,3 +37,19 @@ TheContext_PRD.md
 
 # Logs
 *.log
+
+# Sensitive credentials & environment files
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.token
+*credentials*
+keys.json
+secrets.json
+
+# Local scratch & nested directories
+the-context/
+scratch/
+

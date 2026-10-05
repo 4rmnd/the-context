@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] — 2026-10-05
+
+### Added
+- **Multi-Platform Scraping Expansion**: Added scrapers for 7 additional AI chat platforms:
+  - DeepSeek Chat (`chat.deepseek.com`)
+  - Perplexity AI (`perplexity.ai`, `www.perplexity.ai`)
+  - Mistral Chat (`chat.mistral.ai`)
+  - Microsoft Copilot (`copilot.microsoft.com`)
+  - Grok (`grok.com`, `x.com/i/grok*`)
+  - Poe (`poe.com`)
+  - HuggingChat (`huggingface.co/chat`)
+  - Universal DOM Scraper with heuristic role detection for unlisted conversational platforms.
+- **7 New AI Backend Providers**:
+  - DeepSeek API (`api.deepseek.com`)
+  - OpenAI (`gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini`, etc.)
+  - NVIDIA NIM (`integrate.api.nvidia.com`)
+  - Ollama (Local LLM via `http://localhost:11434` for 100% offline, zero-data-leak summarization)
+  - Mistral AI (`api.mistral.ai`)
+  - Cerebras Inference (`api.cerebras.ai`)
+  - SambaNova Cloud (`api.sambanova.ai`)
+- **Advanced Execution & Routing Strategies**:
+  - **Cascade Fallback**: Automatic sequential failover when quota limits (HTTP 429) or server errors occur.
+  - **Round-Robin Rotation**: Load-balances requests evenly across configured providers to preserve rate limits.
+  - **Fusion Mode**: Multi-model consensus and synthesis pipeline with automated verification.
+- **Dynamic Model Discovery & Verification**:
+  - Provider-specific live model discovery to fetch real-time available models.
+  - Instant Model Verification ping to test credentials, latency, and access before generating.
+- **Enhanced History Suite**:
+  - Instant search filter for past prompts.
+  - Platform filter chips (`All`, `Claude`, `ChatGPT`, `Gemini`, `DeepSeek`, `Other`).
+  - Markdown Export to download prompt history directly as a `.md` archive.
+  - Expandable / collapsible prompt preview cards with single-click copy and deletion.
+- **Configurable Message Window**:
+  - Precision slider and presets to select conversation depth (10 to 60 messages, or full transcript).
+
+### Changed
+- **Architectural Prompt Redesign**: Generates a standardized, high-density **Session Header** (Quick Brief, Active Constraints & Rules, Status & Last Checkpoint, Continuation Directive) followed by the verbatim transcript for zero context loss.
+- **Refined UI & Aesthetics**: Dark mode interface built with Vercel/Linear design tokens, glassmorphism, dynamic routing pipeline diagram, and smooth micro-interactions.
+- **Updated Manifest Permissions & CSP**: Configured granular host permissions and strict CSP rules for seamless direct communication with all 10 AI APIs.
+
+### Fixed & Improved
+- Fixed virtualized scroll issues on long conversations in Claude and ChatGPT by optimizing DOM node traversal.
+- Enhanced API key management with password masking, individual visibility toggles, and instant status indicators.
+- Added comprehensive error banners with actionable guidance when quotas are exhausted or networks fail.
+
+### Security
+- Strict client-only security: API keys and conversation data are stored strictly in `chrome.storage.local` and transmitted directly to the respective API endpoints without any proxy or intermediary server.
+- Reinforced repository `.gitignore` to block all `.env`, certificates, tokens, and local scratch files.
+
 ## [1.1.0] — 2026-06-05
 
 ### Added

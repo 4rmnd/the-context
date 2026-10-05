@@ -6,20 +6,20 @@
   <title>The Context</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="app-container">
     
-    <!-- Premium Header -->
+    <!-- Header -->
     <header class="app-header">
       <div class="logo-area">
         <img src="../icons/icon.png" alt="The Context" class="app-logo">
         <span class="wordmark">The Context</span>
       </div>
       <span id="platform-pill" class="platform-pill unknown">
-        <img id="platform-favicon" class="platform-favicon" src="" alt="" aria-hidden="true">
+        <span id="platform-icon-wrapper" class="platform-icon-wrapper"></span>
         <span id="platform-name">Detecting...</span>
       </span>
     </header>
@@ -40,32 +40,41 @@
       </button>
     </nav>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <main class="app-content">
 
-      <!-- PANEL 1: Generator -->
+      <!-- ════════ PANEL 1: Generator ════════ -->
       <section id="tab-generator" class="tab-panel active">
+        <!-- Status Card -->
         <div class="status-card">
           <div class="status-row">
-            <span class="status-label">Active Tab:</span>
-            <span id="detected-site-label" class="status-value">Claude / ChatGPT / Gemini</span>
+            <span class="status-label">Active Session:</span>
+            <span id="detected-site-label" class="status-value">Detecting AI platform...</span>
           </div>
           <div class="status-row mt-2">
-            <span class="status-label">Messages:</span>
-            <span id="scraped-count-label" class="status-value">-</span>
+            <span class="status-label">Messages Scanned:</span>
+            <span id="scraped-count-label" class="status-value">Scanning conversation...</span>
           </div>
         </div>
 
+        <!-- Round-Robin Active Status Badge -->
+        <div id="routing-status-badge" class="routing-status-badge">
+          <div class="routing-dot"></div>
+          <span class="routing-title">Engine:</span>
+          <span id="routing-mode-label" class="routing-val">Cascade Fallback</span>
+          <span id="routing-next-pill" class="routing-next-pill hidden">Next: Gemini</span>
+        </div>
+
+        <!-- Generate Button -->
         <button id="btn-generate" class="btn-primary primary-gradient" disabled>
           <span class="btn-text">Generate Continuation Prompt</span>
           <span class="spinner hidden"></span>
         </button>
 
+        <!-- Result Wrapper -->
         <div id="result-wrapper" class="result-wrapper hidden">
-          <!-- Hidden textarea to store the generated prompt for JS copy logic -->
           <textarea id="prompt-output" class="hidden" readonly></textarea>
           
-          <!-- Premium Success Card -->
           <div class="success-card">
             <div class="success-icon-container">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="success-icon-svg">
@@ -74,11 +83,18 @@
             </div>
             <div class="success-info">
               <span class="success-title">Continuation Prompt Ready!</span>
-              <span class="success-desc">Generated successfully using <span id="provider-badge" class="provider-badge-highlight">Gemini</span></span>
+              <span class="success-desc">Generated via <span id="provider-badge" class="provider-badge-highlight">Gemini</span> (<span id="model-badge">gemini-2.0-flash</span>)</span>
             </div>
           </div>
 
-          <!-- Big premium CTA button -->
+          <div class="prompt-preview-box">
+            <div class="preview-header">
+              <span>Preview Package</span>
+              <button type="button" id="btn-toggle-preview" class="btn-text-action">Expand</button>
+            </div>
+            <div id="prompt-preview-content" class="preview-body collapsed scrollbar"></div>
+          </div>
+
           <button id="btn-copy" class="btn-primary mt-3" title="Copy to Clipboard">
             <span class="copy-icon button-icon-text-wrapper">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-svg-icon">
@@ -87,109 +103,581 @@
               </svg>
               <span>Copy Continuation Prompt</span>
             </span>
-            <span class="copy-success-check hidden">✓ Copied!</span>
+            <span class="copy-success-check hidden">✓ Copied to Clipboard!</span>
           </button>
         </div>
 
-        <!-- Toast Feedback -->
-        <div id="toast" class="toast hidden">Copied to Clipboard!</div>
+
         <!-- Error Message Banner -->
         <div id="error-banner" class="error-banner hidden">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="error-icon">
             <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
           </svg>
           <div class="error-body">
-            <span class="error-title">Scan failed</span>
+            <span class="error-title">Notice</span>
             <span class="error-msg"></span>
           </div>
         </div>
       </section>
 
-      <!-- PANEL 2: History -->
+      <!-- ════════ PANEL 2: History ════════ -->
       <section id="tab-history" class="tab-panel">
+        <div class="history-controls">
+          <div class="history-search-wrapper">
+            <input type="text" id="history-search" class="history-search-input" placeholder="Search saved prompts...">
+          </div>
+          <!-- Filter chips -->
+          <div class="filter-chips">
+            <button class="chip active" data-filter="all">All</button>
+            <button class="chip" data-filter="claude">Claude</button>
+            <button class="chip" data-filter="chatgpt">ChatGPT</button>
+            <button class="chip" data-filter="gemini">Gemini</button>
+            <button class="chip" data-filter="deepseek">DeepSeek</button>
+            <button class="chip" data-filter="other">Other</button>
+          </div>
+          <!-- History Actions -->
+          <div class="history-header-actions">
+            <button type="button" id="btn-export-history" class="btn-micro" title="Download history as Markdown file">
+              📥 Export
+            </button>
+            <button type="button" id="btn-clear-history" class="btn-micro btn-danger" title="Clear all history">
+              🗑️ Clear
+            </button>
+          </div>
+        </div>
+
         <div class="history-list-wrapper">
           <div id="history-empty" class="empty-state">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="empty-icon-svg"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
             <p>No history yet.</p>
-            <span>Generate your first prompt to see it here.</span>
+            <span>Generate your first continuation prompt to view it here.</span>
           </div>
           <div id="history-items" class="history-items scrollbar">
-            <!-- Dynamically populated -->
+            <!-- Dynamically populated cards -->
           </div>
         </div>
       </section>
 
-      <!-- PANEL 3: Settings -->
+      <!-- ════════ PANEL 3: Settings ════════ -->
       <section id="tab-settings" class="tab-panel">
         <form id="settings-form" class="settings-form">
 
-          <div id="byok-fields" class="settings-group">
-            <label class="group-title">API Keys</label>
+          <!-- 1. AI Execution Mode & Strategy Dropdown -->
+          <div class="settings-group">
+            <label class="group-title" for="routing-mode-select">AI Routing & Execution Strategy</label>
+            <div class="routing-select-wrapper">
+              <select id="routing-mode-select" class="routing-select-custom">
+                <option value="cascade">Fallback — try in order</option>
+                <option value="round-robin">Round Robin — rotate</option>
+                <option value="fusion">Fusion — panel + judge</option>
+              </select>
+            </div>
+            <p id="routing-mode-desc" class="routing-mode-desc">Primary provider first ➔ Tries next candidate on rate limits or errors.</p>
 
-            <div class="input-field-wrapper">
-              <label for="gemini-key">Gemini API Key</label>
-              <div class="input-container">
-                <input type="password" id="gemini-key" placeholder="AIzaSy...">
-                <button type="button" class="btn-toggle-visibility" data-target="gemini-key">👁️</button>
+            <!-- Visual Diagram Card -->
+            <div id="round-robin-diagram" class="round-robin-diagram-card">
+              <div class="diagram-title" id="diagram-title">Fallback Pipeline</div>
+              <div class="diagram-pipeline" id="diagram-pipeline">
+                <div class="diagram-node">
+                  <span class="node-badge">1</span>
+                  <span class="node-name">Gemini</span>
+                </div>
+                <div class="diagram-arrow">➔</div>
+                <div class="diagram-node">
+                  <span class="node-badge">2</span>
+                  <span class="node-name">Groq</span>
+                </div>
+                <div class="diagram-arrow">➔</div>
+                <div class="diagram-node">
+                  <span class="node-badge">3</span>
+                  <span class="node-name">DeepSeek</span>
+                </div>
+              </div>
+              <p class="diagram-hint" id="diagram-hint">Tries candidate 1. If quota limit or error occurs, seamlessly fails over to candidate 2, then candidate 3.</p>
+            </div>
+          </div>
+
+          <!-- 2. Provider API Keys & Model Selectors (Tabbed) -->
+          <div class="settings-group">
+            <div class="provider-section-header">
+              <label class="group-title">Configured Providers</label>
+              <span class="provider-section-hint">Select a tab to configure</span>
+            </div>
+
+            <!-- Provider Sub-Navigation -->
+            <div class="provider-subnav">
+              <button type="button" class="prov-tab active" data-prov="gemini">
+                <span>✨ Gemini</span>
+                <span class="prov-dot hidden" id="dot-gemini" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="groq">
+                <span>⚡ Groq</span>
+                <span class="prov-dot hidden" id="dot-groq" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="deepseek">
+                <span>🐋 DeepSeek</span>
+                <span class="prov-dot hidden" id="dot-deepseek" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="openrouter">
+                <span>🌐 OpenRouter</span>
+                <span class="prov-dot hidden" id="dot-openrouter" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="openai">
+                <span>🤖 OpenAI</span>
+                <span class="prov-dot hidden" id="dot-openai" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="nvidia">
+                <span>🟢 NVIDIA</span>
+                <span class="prov-dot hidden" id="dot-nvidia" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="ollama">
+                <span>🦙 Ollama</span>
+                <span class="prov-dot hidden" id="dot-ollama" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="mistral">
+                <span>🌪️ Mistral</span>
+                <span class="prov-dot hidden" id="dot-mistral" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="cerebras">
+                <span>⚡ Cerebras</span>
+                <span class="prov-dot hidden" id="dot-cerebras" title="Configured"></span>
+              </button>
+              <button type="button" class="prov-tab" data-prov="sambanova">
+                <span>🚀 SambaNova</span>
+                <span class="prov-dot hidden" id="dot-sambanova" title="Configured"></span>
+              </button>
+            </div>
+
+            <!-- Gemini Panel -->
+            <div class="provider-config-card prov-panel" id="prov-panel-gemini">
+              <div class="provider-header">
+                <span class="provider-name">Google Gemini</span>
+                <span class="provider-role-badge primary">Primary Recommended</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="gemini-key">Gemini API Key</label>
+                <div class="input-container">
+                  <input type="password" id="gemini-key" placeholder="AIzaSy...">
+                  <button type="button" class="btn-toggle-visibility" data-target="gemini-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="gemini-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-gemini"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-gemini-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="gemini-model-select">
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Recommended)</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="gemini-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="gemini-custom-model" placeholder="e.g. gemini-2.0-flash-exp">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="gemini">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-gemini"></span>
               </div>
             </div>
 
-            <div class="input-field-wrapper mt-3">
-              <label for="groq-key">Groq API Key <span style="color:var(--muted);font-weight:400">(fallback)</span></label>
-              <div class="input-container">
-                <input type="password" id="groq-key" placeholder="gsk_...">
-                <button type="button" class="btn-toggle-visibility" data-target="groq-key">👁️</button>
+            <!-- Groq Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-groq">
+              <div class="provider-header">
+                <span class="provider-name">Groq</span>
+                <span class="provider-role-badge">Ultra-Fast Inference</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="groq-key">Groq API Key</label>
+                <div class="input-container">
+                  <input type="password" id="groq-key" placeholder="gsk_...">
+                  <button type="button" class="btn-toggle-visibility" data-target="groq-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="groq-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-groq"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-groq-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="groq-model-select">
+                    <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Recommended)</option>
+                    <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
+                    <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                    <option value="gemma2-9b-it">Gemma 2 9B IT</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="groq-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="groq-custom-model" placeholder="e.g. llama-3.3-70b-versatile">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="groq">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-groq"></span>
               </div>
             </div>
 
-            <div class="input-field-wrapper mt-3">
-              <label for="openrouter-key">OpenRouter API Key <span style="color:var(--muted);font-weight:400">(fallback)</span></label>
-              <div class="input-container">
-                <input type="password" id="openrouter-key" placeholder="sk-or-v1-...">
-                <button type="button" class="btn-toggle-visibility" data-target="openrouter-key">👁️</button>
+            <!-- DeepSeek Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-deepseek">
+              <div class="provider-header">
+                <span class="provider-name">DeepSeek</span>
+                <span class="provider-role-badge">Deep Reasoning & Coding</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="deepseek-key">DeepSeek API Key</label>
+                <div class="input-container">
+                  <input type="password" id="deepseek-key" placeholder="sk-...">
+                  <button type="button" class="btn-toggle-visibility" data-target="deepseek-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="deepseek-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-deepseek"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-deepseek-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="deepseek-model-select">
+                    <option value="deepseek-chat">deepseek-chat (V3)</option>
+                    <option value="deepseek-reasoner">deepseek-reasoner (R1)</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="deepseek-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="deepseek-custom-model" placeholder="e.g. deepseek-chat">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="deepseek">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-deepseek"></span>
               </div>
             </div>
 
-            <div class="input-field-wrapper mt-3">
-              <label for="openrouter-model-select">OpenRouter Model</label>
-              <div class="input-container">
-                <select id="openrouter-model-select">
-                  <option value="google/gemini-2.0-flash:free">Gemini 2.0 Flash (Free)</option>
-                  <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct (Free)</option>
-                  <option value="google/gemini-2.0-flash">Gemini 2.0 Flash</option>
-                  <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B Instruct</option>
-                  <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
-                  <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
-                  <option value="deepseek/deepseek-chat">DeepSeek Chat</option>
-                  <option value="mistralai/mistral-large">Mistral Large 2</option>
-                  <option value="openrouter/auto">Auto (OpenRouter Route)</option>
-                  <option value="custom">Custom Model...</option>
-                </select>
+            <!-- OpenRouter Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-openrouter">
+              <div class="provider-header">
+                <span class="provider-name">OpenRouter</span>
+                <span class="provider-role-badge">Multi-Model Gateway</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="openrouter-key">OpenRouter API Key</label>
+                <div class="input-container">
+                  <input type="password" id="openrouter-key" placeholder="sk-or-v1-...">
+                  <button type="button" class="btn-toggle-visibility" data-target="openrouter-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="openrouter-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-openrouter"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-openrouter-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="openrouter-model-select">
+                    <option value="google/gemini-2.0-flash:free">Gemini 2.0 Flash (Free)</option>
+                    <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct (Free)</option>
+                    <option value="deepseek/deepseek-chat">DeepSeek Chat</option>
+                    <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                    <option value="mistralai/mistral-large">Mistral Large</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="openrouter-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="openrouter-custom-model" placeholder="e.g. meta-llama/llama-3-8b-instruct:free">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="openrouter">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-openrouter"></span>
               </div>
             </div>
 
-            <div id="openrouter-custom-model-wrapper" class="input-field-wrapper mt-2 hidden">
-              <label for="openrouter-model-custom">Custom Model ID</label>
-              <div class="input-container">
-                <input type="text" id="openrouter-model-custom" placeholder="e.g. meta-llama/llama-3-8b-instruct:free">
+            <!-- OpenAI Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-openai">
+              <div class="provider-header">
+                <span class="provider-name">OpenAI</span>
+                <span class="provider-role-badge">Direct API</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="openai-key">OpenAI API Key</label>
+                <div class="input-container">
+                  <input type="password" id="openai-key" placeholder="sk-proj-...">
+                  <button type="button" class="btn-toggle-visibility" data-target="openai-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="openai-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-openai"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-openai-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="openai-model-select">
+                    <option value="gpt-4o-mini">gpt-4o-mini (Recommended)</option>
+                    <option value="gpt-4o">gpt-4o</option>
+                    <option value="o3-mini">o3-mini</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="openai-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="openai-custom-model" placeholder="e.g. gpt-4o-mini">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="openai">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-openai"></span>
+              </div>
+            </div>
+
+            <!-- NVIDIA NIM Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-nvidia">
+              <div class="provider-header">
+                <span class="provider-name">NVIDIA NIM</span>
+                <span class="provider-role-badge">Cloud API</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="nvidia-key">NVIDIA API Key</label>
+                <div class="input-container">
+                  <input type="password" id="nvidia-key" placeholder="nvapi-...">
+                  <button type="button" class="btn-toggle-visibility" data-target="nvidia-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="nvidia-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-nvidia"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-nvidia-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="nvidia-model-select">
+                    <option value="meta/llama-3.3-70b-instruct">meta/llama-3.3-70b-instruct (Recommended)</option>
+                    <option value="deepseek-ai/deepseek-r1">deepseek-ai/deepseek-r1</option>
+                    <option value="mistralai/mistral-large-2-instruct">mistralai/mistral-large-2-instruct</option>
+                    <option value="nvidia/llama-3.1-nemotron-70b-instruct">nvidia/llama-3.1-nemotron-70b-instruct</option>
+                    <option value="meta/llama-3.1-8b-instruct">meta/llama-3.1-8b-instruct</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="nvidia-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="nvidia-custom-model" placeholder="e.g. meta/llama-3.3-70b-instruct">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="nvidia">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-nvidia"></span>
+              </div>
+            </div>
+
+            <!-- Ollama Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-ollama">
+              <div class="provider-header">
+                <span class="provider-name">Ollama (Cloud & Local)</span>
+                <span class="provider-role-badge">Local / Cloud</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="ollama-endpoint">Ollama Endpoint</label>
+                <div class="input-container">
+                  <input type="text" id="ollama-endpoint" placeholder="http://localhost:11434/v1">
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="ollama-key">API Key (Optional for Local)</label>
+                <div class="input-container">
+                  <input type="password" id="ollama-key" placeholder="Optional for local / API key for cloud">
+                  <button type="button" class="btn-toggle-visibility" data-target="ollama-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="ollama-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-ollama"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-ollama-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="ollama-model-select">
+                    <option value="llama3.3:latest">llama3.3:latest (Recommended)</option>
+                    <option value="llama3.1:latest">llama3.1:latest</option>
+                    <option value="deepseek-r1:latest">deepseek-r1:latest</option>
+                    <option value="qwen2.5-coder:latest">qwen2.5-coder:latest</option>
+                    <option value="mistral:latest">mistral:latest</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="ollama-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="ollama-custom-model" placeholder="e.g. llama3.3:latest">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="ollama">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-ollama"></span>
+              </div>
+            </div>
+
+            <!-- Mistral AI Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-mistral">
+              <div class="provider-header">
+                <span class="provider-name">Mistral AI</span>
+                <span class="provider-role-badge">Direct API</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="mistral-key">Mistral API Key</label>
+                <div class="input-container">
+                  <input type="password" id="mistral-key" placeholder="Mistral API Key...">
+                  <button type="button" class="btn-toggle-visibility" data-target="mistral-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="mistral-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-mistral"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-mistral-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="mistral-model-select">
+                    <option value="mistral-large-latest">mistral-large-latest (Recommended)</option>
+                    <option value="codestral-latest">codestral-latest</option>
+                    <option value="mistral-small-latest">mistral-small-latest</option>
+                    <option value="open-mistral-nemo">open-mistral-nemo</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="mistral-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="mistral-custom-model" placeholder="e.g. mistral-large-latest">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="mistral">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-mistral"></span>
+              </div>
+            </div>
+
+            <!-- Cerebras Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-cerebras">
+              <div class="provider-header">
+                <span class="provider-name">Cerebras</span>
+                <span class="provider-role-badge">Ultra-Fast Inference</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="cerebras-key">Cerebras API Key</label>
+                <div class="input-container">
+                  <input type="password" id="cerebras-key" placeholder="csk-...">
+                  <button type="button" class="btn-toggle-visibility" data-target="cerebras-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="cerebras-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-cerebras"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-cerebras-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="cerebras-model-select">
+                    <option value="llama-3.3-70b">llama-3.3-70b (Recommended)</option>
+                    <option value="llama3.1-70b">llama3.1-70b</option>
+                    <option value="llama3.1-8b">llama3.1-8b</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="cerebras-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="cerebras-custom-model" placeholder="e.g. llama-3.3-70b">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="cerebras">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-cerebras"></span>
+              </div>
+            </div>
+
+            <!-- SambaNova Panel -->
+            <div class="provider-config-card prov-panel hidden" id="prov-panel-sambanova">
+              <div class="provider-header">
+                <span class="provider-name">SambaNova</span>
+                <span class="provider-role-badge">High Speed Cloud</span>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <label for="sambanova-key">SambaNova API Key</label>
+                <div class="input-container">
+                  <input type="password" id="sambanova-key" placeholder="SambaNova API Key...">
+                  <button type="button" class="btn-toggle-visibility" data-target="sambanova-key">👁️</button>
+                </div>
+              </div>
+              <div class="input-field-wrapper mt-2">
+                <div class="model-row-header">
+                  <label for="sambanova-model-select">Model</label>
+                  <div class="model-fetch-actions">
+                    <span class="fetch-status" id="fetch-status-sambanova"></span>
+                    <button type="button" class="btn-action-small" id="btn-fetch-sambanova-models">⚡ Fetch Models</button>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <select id="sambanova-model-select">
+                    <option value="Meta-Llama-3.3-70B-Instruct">Meta-Llama-3.3-70B-Instruct (Recommended)</option>
+                    <option value="DeepSeek-R1-Distill-Llama-70B">DeepSeek-R1-Distill-Llama-70B</option>
+                    <option value="Qwen2.5-72B-Instruct">Qwen2.5-72B-Instruct</option>
+                    <option value="Meta-Llama-3.1-8B-Instruct">Meta-Llama-3.1-8B-Instruct</option>
+                    <option value="custom">Custom Model...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="sambanova-custom-wrapper" class="input-field-wrapper mt-2 hidden">
+                <input type="text" id="sambanova-custom-model" placeholder="e.g. Meta-Llama-3.3-70B-Instruct">
+              </div>
+              <div class="provider-card-footer mt-2">
+                <button type="button" class="btn-verify-model" data-provider="sambanova">🧪 Test / Verify Model</button>
+                <span class="verification-status" id="verify-status-sambanova"></span>
               </div>
             </div>
           </div>
 
+          <!-- 3. Message Range Settings -->
           <div class="settings-group">
             <div class="slider-header">
-              <label for="max-messages">Messages to Scan</label>
+              <label for="max-messages">Messages Limit for Context</label>
               <span id="max-messages-val">50</span>
             </div>
             <input type="range" id="max-messages" min="10" max="200" step="10" value="50" class="slider-range">
-            <div class="all-messages-row">
-              <input type="checkbox" id="max-messages-all" class="checkbox-all">
-              <label for="max-messages-all" class="checkbox-label">All messages (no limit)</label>
+            
+            <div class="quick-presets mt-2">
+              <button type="button" class="btn-preset" data-preset="10">10 msgs</button>
+              <button type="button" class="btn-preset" data-preset="20">20 msgs</button>
+              <button type="button" class="btn-preset" data-preset="30">30 msgs</button>
+              <button type="button" class="btn-preset" data-preset="50">50 msgs</button>
+              <button type="button" class="btn-preset" data-preset="100">100 msgs</button>
             </div>
-            <p class="settings-hint">Number of recent messages (User + AI) sent to the API. More = more context, but uses more tokens. Check "All" to send the entire conversation.</p>
+
+            <div class="all-messages-row mt-2">
+              <input type="checkbox" id="max-messages-all" class="checkbox-all">
+              <label for="max-messages-all" class="checkbox-label">All messages (include entire conversation)</label>
+            </div>
+            <p class="settings-hint">When limited to N messages, the first initial prompt + last N-1 messages are retained.</p>
           </div>
 
-          <button type="submit" id="btn-save-settings" class="btn-secondary">
+          <button type="submit" id="btn-save-settings" class="btn-primary primary-gradient">
             Save Settings
           </button>
         </form>
@@ -197,11 +685,14 @@
 
     </main>
 
-    <!-- Sleek Minimalist Footer -->
+    <!-- Global Toast Feedback (Visible across all tabs) -->
+    <div id="toast" class="toast hidden">Copied to Clipboard!</div>
+
+    <!-- Footer -->
     <footer class="app-footer">
-      <span>The Context v1.1.0</span>
+      <span>The Context v1.2.0</span>
       <span class="footer-separator">•</span>
-      <span>Made for AI power users</span>
+      <span>Multi-Platform AI Context Carrier</span>
     </footer>
 
   </div>
