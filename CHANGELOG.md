@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] — 2026-10-19
+
+### Added
+- **Context Carry Header Architecture (PRD v1.0)**:
+  - Re-architected `SYSTEM_PROMPT` to generate a standardized 8-section header (`QUICK BRIEF`, `ACTIVE CONSTRAINTS & RULES`, `DECISIONS`, `OPEN ITEMS`, `ARTIFACTS & REFERENCES`, `STATUS & LAST CHECKPOINT`, `CONTINUATION DIRECTIVE`).
+  - **Fixed Opening Directive (FR-12)**: Standardized directive block instructing the receiving AI to treat the payload as background context, avoid summarizing it back, resume directly from checkpoint, and clarify ambiguities.
+  - **Ownership Tagging (FR-10)**: Clear attribution tags `[USER]` (decisions/constraints explicitly made or approved by user) and `[USULAN AI]` (unconfirmed AI suggestions).
+  - **Superseded History Tracking (FR-11)**: Explicit tracking of evolved decisions/rules via `(digantikan: <old> → <new>)` format to prevent receiving AI from assuming superseded choices are active.
+  - **Artifacts & References Verbatim Extraction (FR-7)**: Precision extraction of file paths, functions, URLs, versions, commands, and critical numbers character-for-character.
+  - **Coverage Note Logic (FR-13)**: Conditional detection of truncation markers (`...[middle section omitted...]...` / `earlier messages omitted`) to alert receiving AI when the middle section was omitted.
+  - **Prompt Injection Defense (FR-15)**: Scraped conversation strictly isolated as passive, untrusted data; AI header generator explicitly ignores prompt injection commands in transcript.
+  - **Canonical Dummy Example (NFR-2)**: Neutral sourdough baking example included in prompt to guarantee structural compliance across smaller models (Groq/Llama) without domain contamination.
+
+### Changed
+- **Token Output Limit Bump (NFR-1)**: Increased output ceiling from 1,024 to 4,096 tokens across all 10 provider integrations (Gemini, Groq, DeepSeek, OpenRouter, OpenAI, NVIDIA NIM, Ollama, Mistral, Cerebras, SambaNova) to ensure long headers (~700–800 words) never truncate.
+
+---
+
 ## [1.2.0] — 2026-10-05
 
 ### Added
